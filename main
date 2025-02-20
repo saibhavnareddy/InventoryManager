@@ -1,0 +1,162 @@
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.io.FileWriter;
+import java.io.IOException;
+
+public class InventoryManager {
+    private JFrame frame;
+    private JTextField itemNameField, quantityField, priceField;
+    private JTable table;
+    private DefaultTableModel tableModel;
+
+    public InventoryManager() {
+        frame = new JFrame("Inventory Manager");
+        frame.setSize(900, 450);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setLayout(new BorderLayout());
+
+        // Input Panel with Labels and Fields in a Single Row
+        JPanel inputPanel = new JPanel(new GridLayout(1, 6, 5, 5));
+        inputPanel.setBackground(new Color(45, 45, 45)); // Dark Gray
+        inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 5, 10));
+
+        JLabel itemNameLabel = createStyledLabel("Item:");
+        itemNameField = createStyledTextField();
+
+        JLabel quantityLabel = createStyledLabel("Qty:");
+        quantityField = createStyledTextField();
+
+        JLabel priceLabel = createStyledLabel("Price:");
+        priceField = createStyledTextField();
+
+        inputPanel.add(itemNameLabel);
+        inputPanel.add(itemNameField);
+        inputPanel.add(quantityLabel);
+        inputPanel.add(quantityField);
+        inputPanel.add(priceLabel);
+        inputPanel.add(priceField);
+
+        // Button Panel
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 4, 5, 5));
+        buttonPanel.setBackground(new Color(45, 45, 45));
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+
+        JButton addButton = createStyledButton("Add");
+        JButton editButton = createStyledButton("Edit");
+        JButton deleteButton = createStyledButton("Delete");
+        JButton exportButton = createStyledButton("Export");
+
+        buttonPanel.add(addButton);
+        buttonPanel.add(editButton);
+        buttonPanel.add(deleteButton);
+        buttonPanel.add(exportButton);
+
+        // Table Panel
+        tableModel = new DefaultTableModel();
+        tableModel.setColumnIdentifiers(new String[]{"Item", "Quantity", "Price"});
+
+        table = new JTable(tableModel);
+        table.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 14));
+        table.getTableHeader().setBackground(new Color(30, 30, 30));
+        table.getTableHeader().setForeground(Color.WHITE);
+        table.setBackground(new Color(60, 60, 60));
+        table.setForeground(Color.WHITE);
+        table.setGridColor(Color.GRAY);
+        table.setSelectionBackground(new Color(100, 100, 100));
+        table.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        table.setRowHeight(25);
+
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+
+        // Adding Components to Frame
+        frame.add(inputPanel, BorderLayout.NORTH);
+        frame.add(buttonPanel, BorderLayout.CENTER);
+        frame.add(scrollPane, BorderLayout.SOUTH);
+
+        // Button Actions
+        addButton.addActionListener(e -> addItem());
+        deleteButton.addActionListener(e -> deleteItem());
+        editButton.addActionListener(e -> editItem());
+        exportButton.addActionListener(e -> exportData());
+
+        frame.setVisible(true);
+    }
+
+    // Method to Create Styled Labels
+    private JLabel createStyledLabel(String text) {
+        JLabel label = new JLabel(text);
+        label.setForeground(Color.WHITE);
+        label.setFont(new Font("SansSerif", Font.BOLD, 14));
+        return label;
+    }
+
+    // Method to Create Styled Text Fields
+    private JTextField createStyledTextField() {
+        JTextField textField = new JTextField(8); // Reduce width
+        textField.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        return textField;
+    }
+
+    // Method to Create Styled Buttons
+    private JButton createStyledButton(String text) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("SansSerif", Font.BOLD, 14));
+        button.setBackground(new Color(70, 130, 180)); // Steel Blue
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 2));
+        button.setOpaque(true);
+        return button;
+    }
+
+    // Add Item to Table
+    private void addItem() {
+        String name = itemNameField.getText();
+        String quantity = quantityField.getText();
+        String price = priceField.getText();
+
+        if (!name.isEmpty() && !quantity.isEmpty() && !price.isEmpty()) {
+            tableModel.addRow(new Object[]{name, quantity, price});
+            itemNameField.setText("");
+            quantityField.setText("");
+            priceField.setText("");
+        }
+    }
+
+    // Delete Item from Table
+    private void deleteItem() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow != -1) {
+            tableModel.removeRow(selectedRow);
+        }
+    }
+
+    // Edit Selected Item
+    private void editItem() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow != -1) {
+            tableModel.setValueAt(itemNameField.getText(), selectedRow, 0);
+            tableModel.setValueAt(quantityField.getText(), selectedRow, 1);
+            tableModel.setValueAt(priceField.getText(), selectedRow, 2);
+        }
+    }
+
+    // Export Data to CSV
+    private void exportData() {
+        try (FileWriter writer = new FileWriter("inventory.csv")) {
+            for (int i = 0; i < tableModel.getRowCount(); i++) {
+                writer.write(tableModel.getValueAt(i, 0) + "," + tableModel.getValueAt(i, 1) + "," + tableModel.getValueAt(i, 2) + "\n");
+            }
+            JOptionPane.showMessageDialog(frame, "Data exported successfully.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Main Method
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(InventoryManager::new);
+    }
+}
